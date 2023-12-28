@@ -35,10 +35,10 @@ def random_crop(pil_image, low_size=64):
 
 
 class CsvDataset(Dataset):
-    def __init__(self, input_filename, transforms, img_key, caption_key, sep="\t", tokenizer=None, da=False,
+    def __init__(self, input_filename, transforms, img_key, caption_key, delimiter='|', tokenizer=None, da=False,
                  crop=False):
         logging.debug(f'Loading csv data from {input_filename}.')
-        df = pd.read_csv(input_filename, sep=sep)
+        df = pd.read_csv(input_filename, delimiter='|')
 
         self.images = df[img_key].tolist()
         self.captions = df[caption_key].tolist()
@@ -476,7 +476,7 @@ def get_csv_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
         preprocess_fn,
         img_key=args.csv_img_key,
         caption_key=args.csv_caption_key,
-        sep=args.csv_separator,
+        delimiter='|',
         tokenizer=tokenizer,
         da=args.da,
         crop=args.crop,
