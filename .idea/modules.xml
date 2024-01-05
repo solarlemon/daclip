@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/daclip.iml" filepath="$PROJECT_DIR$/.idea/daclip.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/daclip-test.iml" filepath="$PROJECT_DIR$/.idea/daclip-test.iml" />
     </modules>
   </component>
 </project>

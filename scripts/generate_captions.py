@@ -4,11 +4,18 @@ import pandas as pd
 from PIL import Image
 from clip_interrogator import Config, Interrogator
 from tqdm import tqdm
+import locale
+
+
+def getpreferredencoding(do_setlocale=True):
+    return "UTF-8"
+
+
+locale.getpreferredencoding = getpreferredencoding
 
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP', 'tif']
 
-DEGRADATION_TYPES = ['motion-blurry', 'hazy', 'jpeg-compressed', 'low-light', 'noisy', 'raindrop', 'rainy', 'shadowed',
-                     'snowy', 'uncompleted']
+DEGRADATION_TYPES = ['rainy', 'uncompleted', 'low-light']
 
 
 def is_image_file(filename):
@@ -17,6 +24,7 @@ def is_image_file(filename):
 
 def _get_paths_from_images(path):
     """get image path list from image folder"""
+    print(path)
     assert os.path.isdir(path), '{:s} is not a valid directory'.format(path)
     images = []
     for dirpath, _, fnames in sorted(os.walk(path)):
@@ -50,7 +58,9 @@ def generate_captions(dataroot, ci, mode='train'):
     GT_paths, LQ_paths, dagradations = get_paired_paths(os.path.join(dataroot, mode))
 
     future_df = {"filepath": [], "title": []}
+    cnt = 0
     for gt_image_path, lq_image_path, dagradation in tqdm(zip(GT_paths, LQ_paths, dagradations)):
+        cnt += 1
         image = Image.open(gt_image_path).convert('RGB')
         caption = ci.generate_caption(image)
         title = f'{caption}: {dagradation}'
@@ -58,8 +68,14 @@ def generate_captions(dataroot, ci, mode='train'):
         future_df["filepath"].append(lq_image_path)
         future_df["title"].append(title)
 
+        if cnt % 2000 == 0:
+            print(f"Saved {cnt} csv.")
+            # 防止保存失败，每2000张图片保存一次
+            pd.DataFrame.from_dict(future_df).to_csv(
+                os.path.join(dataroot, f"daclip_{mode}{cnt}.csv"), index=False, sep="|"
+            )
     pd.DataFrame.from_dict(future_df).to_csv(
-        os.path.join(dataroot, f"daclip_{mode}.csv"), index=False, sep="\t"
+        os.path.join(dataroot, f"daclip_{mode}.csv"), index=False, sep="|"
     )
 
 

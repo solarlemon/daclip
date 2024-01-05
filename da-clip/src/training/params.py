@@ -75,7 +75,7 @@ def parse_args(args):
     parser.add_argument(
         "--csv-separator",
         type=str,
-        default="\t",
+        default="|",
         help="For csv-like datasets, which separator to use."
     )
     parser.add_argument(

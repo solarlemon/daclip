@@ -38,7 +38,8 @@ class CsvDataset(Dataset):
     def __init__(self, input_filename, transforms, img_key, caption_key, delimiter='|', tokenizer=None, da=False,
                  crop=False):
         logging.debug(f'Loading csv data from {input_filename}.')
-        df = pd.read_csv(input_filename, delimiter='|')
+        df = pd.read_csv(input_filename, delimiter=delimiter, engine="python")
+        print(df.head())
 
         self.images = df[img_key].tolist()
         self.captions = df[caption_key].tolist()

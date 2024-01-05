@@ -24,7 +24,7 @@
 
 🙁 For the inpainting task our current model only supports face inpainting due to the [dataset limitation](https://github.com/Algolzw/daclip-uir/issues/8#issuecomment-1759528246). We provide our mask [examples](https://github.com/Algolzw/daclip-uir/tree/main/scripts/inpainting_masks) and you can use the [generate\_masked\_face](https://github.com/Algolzw/daclip-uir/blob/main/scripts/generate_masked_face.py) script to generate uncompleted faces.
 
-## 运行代码
+## 一、运行代码
 
 ### 依赖
 
@@ -74,7 +74,7 @@ with torch.no_grad(), torch.cuda.amp.autocast():
 print(f"Task: {task_name}: {degradations[index]} - {text_probs[0][index]}")
 ```
 
-### 数据集
+### 二、数据集
 
 按照我们论文的数据集构造部分准备`训练`和`测试`数据集，如下所示：
 
@@ -106,30 +106,32 @@ datasets/universal/daclip_val.csv
 ```
 
 然后进入`universal-image-restoration/config/daclip-sde`目录，并在选项中修改数据集路径。
-文件位于`options/train.yml` 和`options/tes.yml`中。
-您可以将更多的任务或数据集添加到`train`和`val`目录，并将退化词汇词添加到 `distortion`。	
+		文件位于`options/train.yml` 和`options/tes.yml`中。
+		您可以将更多的任务或数据集添加到`train`和`val`目录，并将退化词汇词添加到 `distortion`。	
 
 #### 下载数据集
 
-| Degradation |                    motion-blurry :trophy:                    |                         hazy:trophy:                         |                   jpeg-compressed*   共27G                   |                      low-light:trophy:                       |                    noisy* (same to jpeg)                     |
+| Degradation |                 motion-blurry :trophy: 8.9G                  |                     hazy:trophy: 959.5M                      |                   jpeg-compressed*   共27G                   |                    low-light:trophy: 331M                    |                    noisy* (same to jpeg)                     |
 | ----------- | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | Datasets    | [Gopro](https://drive.google.com/file/d/1y4wvPdOG3mojpFCHTqLgriexhbjoWVkK/view) | [RESIDE-6k](https://drive.google.com/drive/folders/1XVD0x74vKQ0-cqazACUZnjUOWURXIeqH?usp=drive_link) | [DIV2K](https://cv.snu.ac.kr/research/EDSR/DIV2K.tar)+[Flickr2K](https://cv.snu.ac.kr/research/EDSR/Flickr2K.tar) | [LOL](https://drive.google.com/file/d/157bjO1_cFuSd0HWDUuAmcHRJDVyWpOxB/view) | [DIV2K](https://cv.snu.ac.kr/research/EDSR/DIV2K.tar)+[Flickr2K](https://cv.snu.ac.kr/research/EDSR/Flickr2K.tar) |
 
-| Degradation |                       raindrop:trophy:                       |                        rainy:trophy:                         |                       shadowed:trophy:                       |                          snowy 7.8G                          |                     uncompleted :trophy:                     |
+| Degradation |                   raindrop:trophy: 1015.9M                   |                     rainy:trophy: 60.6M                      |                    shadowed:trophy: 457M                     |                          snowy 7.8G                          |                   uncompleted :trophy:297M                   |
 | ----------- | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | Datasets    | [RainDrop](https://drive.google.com/open?id=1e7R76s6vwUJxILOcAsthgDLPSnOrQ49K) | [Rain100H](http://www.icst.pku.edu.cn/struct/att/Rain100H.zip) | [SRD](https://drive.google.com/file/d/1W8vBRJYDG9imMgr9I2XaA13tlFIEHOjS/view) | [Snow100K](https://www.google.com/url?q=https%3A%2F%2Fdesnownet.s3.amazonaws.com%2Fdataset_synthetic%2Ftrain%2FSnow100K-training.tar.gz&sa=D&sntz=1&usg=AOvVaw1Zj_7kQaF0c26DaZcoKEOr) | [CelebaHQ-256](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256) |
 
 您只需提取用于训练的训练数据集，所有验证数据集都可以在 [Google drive](https://drive.google.com/file/d/1JKd1tA7rMoEbI9190daJqL7i6V1L8KUd/view?usp=sharing)中下载。对于jpeg和噪声数据集，您可以使用此脚本[script](https://github.com/Algolzw/daclip-uir/blob/main/scripts/generate_LQ.py)生成LQ图像
 
-### 训练
+### 三、训练
 
 ​		本文中使用ViT作为编码器和控制器的默认主干。如图3(a)中，控制器的输出包括：嵌入层图像退化$e^I_d$和隐藏控件$h_c$(HQ content)。隐藏控件中包含来自transformer块中的所有输出，这些输出随后被添加到相应的编码器块以控制它们的预测。Transformer 块之间的连接是简单的密集神经网络，所有参数都初始化为零，这在训练过程中逐渐影响图像编码器。由于训练数据集与VLMs中使用的网络规模数据集相比很小，因此这种控制策略可以**减轻过度拟合**，同时**保留原始图像编码器的功能**。
 
-#### DA-CLIP 
+#### 1.训练DA-CLIP
+
+> 图像退化分类
 
  [DA-CLIP.md ](da-clip/README.md)  查看详情
 
-#### 统一图像恢复
+#### 2.训练统一图像恢复
 
 训练的主要代码在`universal-image-restoration/config/daclip-sde` 中，DA-CLIP的核心网络是在`universal-image-restoration/open_clip/daclip_model.py`中
 
@@ -150,14 +152,14 @@ python3 -m torch.distributed.launch --nproc_per_node=2 --master_poer=4321 train.
 模型和训练日志将保存在`log/universal-ir`中。
 您可以通过运行`tail -f log/universal-ir/train_universal-ir_***.log -n 100`来打印日志
 
-#### 预先训练的模型
+#### 3.下载预先训练的模型
 
 | Model Name   | Description                                     | GoogleDrive                                                  | HuggingFace                                                  |
 | ------------ | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | DA-CLIP      | Degradation-aware CLIP model                    | [download](https://drive.google.com/file/d/1A6u4CaVrcpcZckGUNzEXqMF8x_JXsZdX/view?usp=sharing) | [download](https://huggingface.co/weblzw/daclip-uir-ViT-B-32-irsde/blob/main/daclip_ViT-B-32.pt) |
 | Universal-IR | DA-CLIP based universal image restoration model | [download](https://drive.google.com/file/d/1eXsyrmAbWOvhIY4Wbt5v4IxaggA5aZMG/view?usp=sharing) | [download](https://huggingface.co/weblzw/daclip-uir-ViT-B-32-irsde/blob/main/universal-ir.pth) |
 
-### 评估
+### 四、评估
 
 为了评估我们的图像恢复方法，请修改路径和模型路径并运行
 
@@ -171,7 +173,7 @@ Here we provide an [app.py](https://github.com/Algolzw/daclip-uir/tree/main/univ
 这里我们提供了一个`universal-image-restoration/config/daclip-sde/app.py`文件用于测试您自己的图像。在此之前，您需要下载预先训练好的权重([DA-CLIP](https://drive.google.com/file/d/1A6u4CaVrcpcZckGUNzEXqMF8x_JXsZdX/view?usp=sharing) and [UIR](https://drive.google.com/file/d/1eXsyrmAbWOvhIY4Wbt5v4IxaggA5aZMG/view?usp=sharing)) ，并在`options/test.yml`中修改模型路径，然后只需运行`python app.py`即可。打开http://localhost:7860测试该模型。(我们还提供了几个不同降级的来自[google drive](https://drive.google.com/file/d/1C1nmP5kJXzxrULxTMVWF5P30qezqP6kn/view?usp=sharing)中的测试数据集的更多示例。
 
 
-### Results
+### 五、Results
 
 ![daclip](figs/UIR_results_radar.jpg)
 
